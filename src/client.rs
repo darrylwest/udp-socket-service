@@ -1,5 +1,6 @@
 use crate::config::Config;
 use anyhow::Result;
+use std::io::{self, Write};
 use std::net::UdpSocket;
 
 #[derive(Debug, Default, Clone)]
@@ -26,22 +27,27 @@ impl Client {
         socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
 
         let server_address = self.create_server_addr();
+        let mut ln = 0;
 
-        let inputs = vec!["/get 12345", "/now", "/ping"];
+        loop {
+            ln += 1;
+            print!("{} > ", ln);
+            let _ = io::stdout().flush();
+            let mut input = String::new();
 
-        for n in 0..inputs.len() {
-            let input = inputs[n];
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Failed to read line");
+            if input.starts_with("quit") {
+                break;
+            }
+
             let message = input.as_bytes();
             socket.send_to(message, server_address.as_str())?;
 
             let mut buffer = [0; 1024];
             let (amt, _) = socket.recv_from(&mut buffer)?;
-            println!(
-                "{}) {} -> {}",
-                input,
-                n,
-                String::from_utf8_lossy(&buffer[..amt])
-            );
+            println!("{}", String::from_utf8_lossy(&buffer[..amt]));
         }
 
         Ok(())
