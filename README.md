@@ -9,7 +9,7 @@
                                                                                       
 ```
 
-_A simple udp socket server with pluggable handler and sample clients._
+_A simple, fast udp socket server with pluggable handler and sample clients._
 
 ###### dpw | 2023.12.09
 
