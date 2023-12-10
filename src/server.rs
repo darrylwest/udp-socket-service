@@ -2,12 +2,12 @@
 //
 //
 
+use crate::handler::{Handler, Request, Response, Status};
 use anyhow::Result;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::net::UdpSocket;
 
 /// pull out the handler
-pub async fn start() -> Result<()> {
+pub async fn start(handler: Handler) -> Result<()> {
     let addr = "0.0.0.0:22200";
     println!("listening on: {}", addr);
 
@@ -23,51 +23,14 @@ pub async fn start() -> Result<()> {
 
         println!("recv: {} bytes from {:?}, msg: {}", len, addr, msg);
         // split this into [cmd, param, param]
-        let params: Vec<&str> = msg.split(' ').collect();
-        let response = handle_request(params);
+        let response = match Request::from_message(msg) {
+            Ok(request) => handler.handle_request(request),
+            Err(e) => Response::create(Status::bad_request(), e.to_string()),
+        };
 
         // return the response
-        let len = sock.send_to(response.as_bytes(), addr).await?;
+        let resp = response.as_string();
+        let len = sock.send_to(resp.as_bytes(), addr).await?;
         println!("returned: {:?}, size {}.", response, len);
     }
-}
-
-// move this to lib
-
-fn handle_request(request: Vec<&str>) -> String {
-    // parse the message to create a response
-    match request[0] {
-        "/get" => {
-            let key = request[1];
-            key.to_string()
-        }
-        "/now" => {
-            let tm = get_now();
-            tm.to_string()
-        }
-        "/ms" => {
-            let tm = get_now_ms();
-            tm.to_string()
-        }
-        "/ping" => String::from("pong\r\n"),
-        _ => String::from("error\r\n"),
-    }
-}
-
-fn get_now() -> String {
-    let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        _ => 0_u64,
-    };
-
-    format!("{}\r\n", now)
-}
-
-fn get_now_ms() -> String {
-    let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_millis(),
-        _ => 0_u128,
-    };
-
-    format!("{}\r\n", now)
 }
