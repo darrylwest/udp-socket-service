@@ -1,5 +1,5 @@
 name = "udp-socket-service"
 version = "0.3.0"
-host = "localhost"
+host = "127.0.0.1"
 port = 22200
 logging_config = "config/console.yaml"

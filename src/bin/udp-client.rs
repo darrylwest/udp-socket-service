@@ -1,31 +1,17 @@
-use anyhow::Result;
-use std::net::UdpSocket;
+use anyhow::{anyhow, Result};
 use udp_socket_service::client::Client;
 use udp_socket_service::config::Config;
 
-fn create_client() -> Client {
-    let config =
-        Config::read_config("./config/client-config.toml").expect("should have a config file");
-    Client::new(config)
+fn create_client() -> Result<Client> {
+    let filename = "./config/client-config.toml";
+    match Config::read_config(filename) {
+        Ok(config) => Ok(Client::new(config)),
+        Err(e) => Err(anyhow!("could not read config: {}", e)),
+    }
 }
 
 fn main() -> Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:0")?;
-    socket.set_write_timeout(Some(std::time::Duration::new(5, 0)))?;
-    socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
-
-    let server_address = "127.0.0.1:22200";
-    let message = b"/get 123456";
-    socket.send_to(message, server_address)?;
-
-    let mut buffer = [0; 1024];
-    let (amt, _) = socket.recv_from(&mut buffer)?;
-    println!(
-        "Received message: {}",
-        String::from_utf8_lossy(&buffer[..amt])
-    );
-
-    Ok(())
+    create_client()?.start()
 }
 
 #[cfg(test)]
