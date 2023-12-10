@@ -1,5 +1,13 @@
 use anyhow::Result;
 use std::net::UdpSocket;
+use udp_socket_service::client::Client;
+use udp_socket_service::config::Config;
+
+fn create_client() -> Client {
+    let config =
+        Config::read_config("./config/client-config.toml").expect("should have a config file");
+    Client::new(config)
+}
 
 fn main() -> Result<()> {
     let socket = UdpSocket::bind("127.0.0.1:0")?;
@@ -18,4 +26,16 @@ fn main() -> Result<()> {
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create_client_test() {
+        let client = create_client();
+        println!("{:?}", client);
+        assert!(true);
+    }
 }
