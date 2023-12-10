@@ -50,7 +50,7 @@ fn handle_request(request: Vec<&str>) -> String {
             tm.to_string()
         }
         "/ping" => String::from("pong\r\n"),
-        _ => String::from("error\r\n"),
+        _ => String::from("404 error: not found\r\n"),
     }
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "udp-socket-service"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2021"
 rust-version = "1.70"
 description = "A simple udp socket server with pluggable handler and sample clients"
@@ -24,3 +24,4 @@ serde_derive = "1.0.193"
 serde_json = "1.0.108"
 serde_toml = "0.0.1"
 tokio = { version = "1.23.0", features = ["full"] }
+toml = "0.8.8"
