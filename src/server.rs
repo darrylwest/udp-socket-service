@@ -7,7 +7,7 @@ use anyhow::Result;
 use tokio::net::UdpSocket;
 
 /// pull out the handler
-pub async fn start(handler: Handler) -> Result<()> {
+pub async fn start(mut handler: Handler) -> Result<()> {
     let addr = "0.0.0.0:22200";
     println!("listening on: {}", addr);
 

@@ -18,7 +18,6 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub logging_config: String,
-    pub data_folder: String,
 }
 
 impl Config {
@@ -43,7 +42,6 @@ impl Config {
             host: self.host.to_string(),
             port: self.port,
             logging_config: self.logging_config.to_string(),
-            data_folder: self.data_folder.to_string(),
         }
     }
 
@@ -93,7 +91,7 @@ mod tests {
     fn new() {
         let config = Config::read_config("tests/server-config.toml").unwrap();
         assert!(!config.name.is_empty());
-        assert!(!config.data_folder.is_empty());
+        assert!(!config.version.is_empty());
     }
 
     #[test]

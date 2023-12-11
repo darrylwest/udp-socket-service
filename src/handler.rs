@@ -2,6 +2,7 @@
 use anyhow::{anyhow, Result};
 use log::{error, info};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tiny_kv::db::DataStore;
 
 #[derive(Debug, Default, Clone)]
 pub struct Request {
@@ -12,17 +13,20 @@ pub struct Request {
 impl Request {
     /// parse the incoming message and return a request object or none
     pub fn from_message(msg: &str) -> Result<Request> {
-        let params: Vec<&str> = msg.split(' ').collect();
+        let mut params: Vec<&str> = msg.split(' ').collect();
         match params.len() {
             0 => Err(anyhow!("empty request")),
             _ => {
-                let cmd = params[0].to_string();
+                let cmd = params.remove(0);
                 let mut p: Vec<String> = Vec::new();
                 for param in params {
                     p.push(param.to_string());
                 }
 
-                Ok(Request { cmd, params: p })
+                Ok(Request {
+                    cmd: cmd.to_string(),
+                    params: p,
+                })
             }
         }
     }
@@ -48,6 +52,14 @@ impl Status {
         Status {
             code,
             description: "bad-request".to_string(),
+        }
+    }
+
+    pub fn not_found() -> Status {
+        let code: u16 = 404;
+        Status {
+            code,
+            description: "not-found".to_string(),
         }
     }
 }
@@ -79,21 +91,61 @@ impl Response {
     }
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct Handler {}
+#[derive(Clone)]
+pub struct Handler {
+    pub db: DataStore,
+}
 
 impl Handler {
+    /// create a new handler with the specified data store.
+    pub fn new(db: DataStore) -> Handler {
+        Handler { db }
+    }
+
     /// returns a response to the request, including error responses
-    pub fn handle_request(&self, request: Request) -> Response {
+    pub fn handle_request(&mut self, request: Request) -> Response {
         info!("handle request: {}", &request.cmd);
         match request.cmd.as_str() {
-            "/ping" => Response::create_ok("PONG".to_string()),
-            "/now" => Response::create_ok(format!("{}", get_now())),
+            "ping" => Response::create_ok("PONG".to_string()),
+            "now" => Response::create_ok(format!("{}", get_now())),
+            "get" => {
+                println!("get {:?}", &request.params);
+                if request.params.len() == 1 {
+                    let key = request.params[0].as_str();
+                    self.get(key)
+                } else {
+                    Response::create(Status::bad_request(), request.cmd.to_string())
+                }
+            }
+            "set" => {
+                println!("set {:?}", &request.params);
+                if request.params.len() == 2 {
+                    let key = request.params[0].as_str();
+                    let value = request.params[1].as_str();
+                    self.set(key, value)
+                } else {
+                    Response::create(Status::bad_request(), request.cmd.to_string())
+                }
+            }
             _ => {
                 error!("bad request: {}", &request.cmd);
                 Response::create(Status::bad_request(), request.cmd.to_string())
             }
         }
+    }
+
+    /// get the item from key
+    fn get(&self, key: &str) -> Response {
+        match self.db.get(key) {
+            Some(value) => Response::create_ok(value),
+            _ => Response::create(Status::not_found(), key.to_string()),
+        }
+    }
+
+    /// set the value from key
+    fn set(&mut self, key: &str, value: &str) -> Response {
+        let _ = self.db.set(key, value);
+        Response::create_ok(value.to_string())
     }
 }
 
@@ -110,8 +162,9 @@ mod tests {
 
     #[test]
     fn new() {
-        let handler = Handler {};
-        print!("{:?}", handler);
+        let db = DataStore::create();
+        let handler = Handler::new(db);
+        let _h = handler.clone();
 
         assert!(true);
     }

@@ -5,4 +5,4 @@
 
 set -eu
 
-echo "/ping" | nc -w 1 -u 127.0.0.1 22200
+echo "ping" | nc -w 1 -u 127.0.0.1 22200

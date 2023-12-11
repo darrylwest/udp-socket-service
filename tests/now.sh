@@ -5,4 +5,4 @@
 
 set -eu
 
-echo "/now" | nc -w 1 -u 127.0.0.1 22200
+echo "now" | nc -w 1 -u 127.0.0.1 22200
