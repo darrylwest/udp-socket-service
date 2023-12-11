@@ -51,6 +51,14 @@ impl Status {
             description: "bad-request".to_string(),
         }
     }
+
+    pub fn not_found() -> Status {
+        let code: u16 = 404;
+        Status {
+            code,
+            description: "not-found".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone)]
@@ -99,7 +107,8 @@ impl Handler {
             "now" => Response::create_ok(format!("{}", get_now())),
             "get" => {
                 if request.params.len() == 1 {
-                    self.get(&request.params[0])
+                    let key = request.params[0].as_str();
+                    self.get(key)
                 } else {
                     Response::create(Status::bad_request(), request.cmd.to_string())
                 }
@@ -113,8 +122,10 @@ impl Handler {
 
     /// get the item
     fn get(&self, key: &str) -> Response {
-        let value = format!("{}:{}", key, get_now() % 1000);
-        Response::create_ok(value)
+        match self.db.get(key) {
+            Some(value) => Response::create_ok(value),
+            _ => Response::create(Status::not_found(), key.to_string()),
+        }
     }
 }
 
