@@ -1,4 +1,6 @@
 /// standard parsers used by handlers and clients
+use anyhow::{anyhow, Result};
+use log::error;
 
 /// split the message into head and tail using whitespace as delim
 pub fn split2(msg: &str) -> (String, String) {
@@ -11,6 +13,21 @@ pub fn split2(msg: &str) -> (String, String) {
     }
 
     (head.to_string(), tail.trim().to_string())
+}
+
+/// return the body as a usize int
+pub fn as_number<T: std::str::FromStr>(value: &str) -> Result<T>
+where
+    <T as std::str::FromStr>::Err: std::fmt::Debug,
+{
+    match value.parse::<T>() {
+        Ok(n) => Ok(n),
+        Err(e) => {
+            let msg = format!("parse: {} error: {:?}", value, e);
+            error!("{}", msg);
+            Err(anyhow!("{}", msg))
+        }
+    }
 }
 
 #[cfg(test)]

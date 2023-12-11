@@ -1,5 +1,5 @@
-use crate::parsers::split2;
 ///
+use crate::parsers;
 use anyhow::{anyhow, Result};
 use log::{error, info};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -14,11 +14,11 @@ pub struct Request {
 impl Request {
     /// parse the incoming message and return a request object or none
     pub fn from_message(msg: &str) -> Result<Request> {
-        let (cmd, params) = split2(msg);
+        let (cmd, params) = parsers::split2(msg);
         match cmd.as_str() {
             "" => Err(anyhow!("empty request")),
             _ => {
-                let (key, value) = split2(&params);
+                let (key, value) = parsers::split2(&params);
                 let params = if value.is_empty() {
                     vec![key]
                 } else {
@@ -81,20 +81,14 @@ impl Response {
         Response { status, body }
     }
 
-    /// return the body as a usize int
-    pub fn as_number<T: std::str::FromStr>(&self) -> Result<T>
-    where
-        <T as std::str::FromStr>::Err: std::fmt::Debug,
-    {
-        let value = self.body.as_str();
-        match value.parse::<T>() {
-            Ok(n) => Ok(n),
-            Err(e) => {
-                let msg = format!("parse: {} error: {:?}", value, e);
-                error!("{}", msg);
-                Err(anyhow!("{}", msg))
-            }
-        }
+    /// parse the body into a usize int
+    pub fn as_usize(&self) -> Result<usize> {
+        parsers::as_number::<usize>(self.body.as_str())
+    }
+
+    /// parse the body and convert to u64
+    pub fn as_u64(&self) -> Result<u64> {
+        parsers::as_number::<u64>(self.body.as_str())
     }
 
     /// return the formatted response as a string
@@ -222,7 +216,7 @@ mod tests {
         let response = handler.handle_request(request);
         println!("dbsize {:?}", response);
         assert_eq!(handler.db.dbsize(), 1);
-        assert_eq!(response.as_number::<usize>().unwrap(), 1);
+        assert_eq!(response.as_usize().unwrap(), 1);
     }
 
     #[test]
