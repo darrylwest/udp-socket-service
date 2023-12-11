@@ -1,3 +1,4 @@
+use crate::parsers::split2;
 ///
 use anyhow::{anyhow, Result};
 use log::{error, info};
@@ -13,20 +14,18 @@ pub struct Request {
 impl Request {
     /// parse the incoming message and return a request object or none
     pub fn from_message(msg: &str) -> Result<Request> {
-        let mut params: Vec<&str> = msg.split(' ').collect();
-        match params.len() {
-            0 => Err(anyhow!("empty request")),
+        let (cmd, params) = split2(msg);
+        match cmd.as_str() {
+            "" => Err(anyhow!("empty request")),
             _ => {
-                let cmd = params.remove(0);
-                let mut p: Vec<String> = Vec::new();
-                for param in params {
-                    p.push(param.to_string());
-                }
+                let (key, value) = split2(&params);
+                let params = if value.is_empty() {
+                    vec![key]
+                } else {
+                    vec![key, value]
+                };
 
-                Ok(Request {
-                    cmd: cmd.to_string(),
-                    params: p,
-                })
+                Ok(Request { cmd, params })
             }
         }
     }
