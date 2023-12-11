@@ -2,6 +2,7 @@
 use anyhow::{anyhow, Result};
 use log::{error, info};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tiny_kv::db::DataStore;
 
 #[derive(Debug, Default, Clone)]
 pub struct Request {
@@ -79,10 +80,17 @@ impl Response {
     }
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct Handler {}
+#[derive(Clone)]
+pub struct Handler {
+    pub db: DataStore,
+}
 
 impl Handler {
+    /// create a new handler with the specified data store.
+    pub fn new(db: DataStore) -> Handler {
+        Handler { db }
+    }
+
     /// returns a response to the request, including error responses
     pub fn handle_request(&self, request: Request) -> Response {
         info!("handle request: {}", &request.cmd);
@@ -123,8 +131,9 @@ mod tests {
 
     #[test]
     fn new() {
-        let handler = Handler {};
-        print!("{:?}", handler);
+        let db = DataStore::create();
+        let handler = Handler::new(db);
+        let _h = handler.clone();
 
         assert!(true);
     }
