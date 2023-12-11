@@ -100,7 +100,7 @@ impl Handler {
     }
 
     /// returns a response to the request, including error responses
-    pub fn handle_request(&self, request: Request) -> Response {
+    pub fn handle_request(&mut self, request: Request) -> Response {
         info!("handle request: {}", &request.cmd);
         match request.cmd.as_str() {
             "ping" => Response::create_ok("PONG".to_string()),
@@ -109,6 +109,15 @@ impl Handler {
                 if request.params.len() == 1 {
                     let key = request.params[0].as_str();
                     self.get(key)
+                } else {
+                    Response::create(Status::bad_request(), request.cmd.to_string())
+                }
+            }
+            "set" => {
+                if request.params.len() == 2 {
+                    let key = request.params[0].as_str();
+                    let value = request.params[1].as_str();
+                    self.set(key, value)
                 } else {
                     Response::create(Status::bad_request(), request.cmd.to_string())
                 }
@@ -123,6 +132,13 @@ impl Handler {
     /// get the item
     fn get(&self, key: &str) -> Response {
         match self.db.get(key) {
+            Some(value) => Response::create_ok(value),
+            _ => Response::create(Status::not_found(), key.to_string()),
+        }
+    }
+
+    fn set(&mut self, key: &str, value: &str) -> Response {
+        match self.db.set(key, value) {
             Some(value) => Response::create_ok(value),
             _ => Response::create(Status::not_found(), key.to_string()),
         }
