@@ -18,6 +18,7 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub logging_config: String,
+    pub data_file: Option<String>,
 }
 
 impl Config {
@@ -42,6 +43,7 @@ impl Config {
             host: self.host.to_string(),
             port: self.port,
             logging_config: self.logging_config.to_string(),
+            data_file: self.data_file.clone(),
         }
     }
 
