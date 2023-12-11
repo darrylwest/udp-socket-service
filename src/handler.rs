@@ -87,13 +87,26 @@ impl Handler {
     pub fn handle_request(&self, request: Request) -> Response {
         info!("handle request: {}", &request.cmd);
         match request.cmd.as_str() {
-            "/ping" => Response::create_ok("PONG".to_string()),
-            "/now" => Response::create_ok(format!("{}", get_now())),
+            "ping" => Response::create_ok("PONG".to_string()),
+            "now" => Response::create_ok(format!("{}", get_now())),
+            "get" => {
+                if request.params.len() == 1 {
+                    self.get(&request.params[0])
+                } else {
+                    Response::create(Status::bad_request(), request.cmd.to_string())
+                }
+            }
             _ => {
                 error!("bad request: {}", &request.cmd);
                 Response::create(Status::bad_request(), request.cmd.to_string())
             }
         }
+    }
+
+    /// get the item
+    fn get(&self, key: &str) -> Response {
+        let value = format!("{}:{}", key, get_now() % 1000);
+        Response::create_ok(value)
     }
 }
 
