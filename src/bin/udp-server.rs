@@ -3,6 +3,7 @@
 //
 use anyhow::Result;
 use clap::Parser;
+use log::info;
 use std::env;
 use tiny_kv::db::DataStore;
 use udp_socket_service::handler::Handler;
@@ -10,10 +11,10 @@ use udp_socket_service::server::start;
 
 #[derive(Debug, Default, Parser)]
 #[command(
-    name="otp-service",
+    name="udp-server",
     author,
     version,
-    about="A One-Time-Password and session service.",
+    about="A udp server backed by tiny-kv handler.",
     long_about=None,
 )]
 struct Cli {
@@ -25,7 +26,7 @@ struct Cli {
 fn create_handler(args: Vec<String>) -> Handler {
     // TODO : read the cli and config file...
     let cli = Cli::parse_from(args);
-    println!("{:?}", cli);
+    info!("{:?}", cli);
     let db = DataStore::create();
     Handler::new(db)
 }

@@ -1,8 +1,30 @@
+///
+/// the main client repl
+///
 use anyhow::{anyhow, Result};
+use clap::Parser;
+use log::info;
+use std::env;
 use udp_socket_service::client::Client;
 use udp_socket_service::config::Config;
 
-fn create_client() -> Result<Client> {
+#[derive(Debug, Default, Parser)]
+#[command(
+    name="udp-client",
+    author,
+    version,
+    about="A repl client for udp-server backed by tiny-kv.",
+    long_about=None,
+)]
+struct Cli {
+    /// config filename to override default
+    #[arg(short, long, default_value_t = String::from("./config/server-config.toml"))]
+    config_file: String,
+}
+
+fn create_client(args: Vec<String>) -> Result<Client> {
+    let cli = Cli::parse_from(args);
+    info!("{:?}", cli);
     let filename = "./config/client-config.toml";
     match Config::read_config(filename) {
         Ok(config) => Ok(Client::new(config)),
@@ -11,7 +33,8 @@ fn create_client() -> Result<Client> {
 }
 
 fn main() -> Result<()> {
-    create_client()?.start()
+    let args: Vec<String> = env::args().collect();
+    create_client(args)?.start()
 }
 
 #[cfg(test)]
@@ -20,7 +43,8 @@ mod tests {
 
     #[test]
     fn create_client_test() {
-        let client = create_client();
+        let args: Vec<String> = vec!["udp-client".to_string()];
+        let client = create_client(args);
         println!("{:?}", client);
         assert!(true);
     }
