@@ -13,17 +13,20 @@ pub struct Request {
 impl Request {
     /// parse the incoming message and return a request object or none
     pub fn from_message(msg: &str) -> Result<Request> {
-        let params: Vec<&str> = msg.split(' ').collect();
+        let mut params: Vec<&str> = msg.split(' ').collect();
         match params.len() {
             0 => Err(anyhow!("empty request")),
             _ => {
-                let cmd = params[0].to_string();
+                let cmd = params.remove(0);
                 let mut p: Vec<String> = Vec::new();
                 for param in params {
                     p.push(param.to_string());
                 }
 
-                Ok(Request { cmd, params: p })
+                Ok(Request {
+                    cmd: cmd.to_string(),
+                    params: p,
+                })
             }
         }
     }
@@ -106,6 +109,7 @@ impl Handler {
             "ping" => Response::create_ok("PONG".to_string()),
             "now" => Response::create_ok(format!("{}", get_now())),
             "get" => {
+                println!("get {:?}", &request.params);
                 if request.params.len() == 1 {
                     let key = request.params[0].as_str();
                     self.get(key)
@@ -114,6 +118,7 @@ impl Handler {
                 }
             }
             "set" => {
+                println!("set {:?}", &request.params);
                 if request.params.len() == 2 {
                     let key = request.params[0].as_str();
                     let value = request.params[1].as_str();
@@ -129,7 +134,7 @@ impl Handler {
         }
     }
 
-    /// get the item
+    /// get the item from key
     fn get(&self, key: &str) -> Response {
         match self.db.get(key) {
             Some(value) => Response::create_ok(value),
@@ -137,11 +142,10 @@ impl Handler {
         }
     }
 
+    /// set the value from key
     fn set(&mut self, key: &str, value: &str) -> Response {
-        match self.db.set(key, value) {
-            Some(value) => Response::create_ok(value),
-            _ => Response::create(Status::not_found(), key.to_string()),
-        }
+        let _ = self.db.set(key, value);
+        Response::create_ok(value.to_string())
     }
 }
 
