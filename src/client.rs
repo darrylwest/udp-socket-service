@@ -29,6 +29,7 @@ impl Client {
         let server_address = self.create_server_addr();
         let mut ln = 0;
 
+        println!("Enter 'quit' or ^c to exit...");
         loop {
             ln += 1;
             print!("{} > ", ln);

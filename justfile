@@ -6,6 +6,7 @@ alias pre := test-all
 alias b := build
 alias rel := release
 alias fmt := format
+alias repl := run-client
 
 os := `uname`
 
@@ -56,6 +57,14 @@ cover:
 # start a http server in the coverage folder
 serve-cover:
     cd coverage && python3 -m http.server 8080
+
+# run the service
+run-server:
+    just rel && ./target/release/udp-server
+
+# run the client / repl
+run-client:
+    just rel && ./target/release/udp-client
 
 # merge the develop branch to main
 merge:
