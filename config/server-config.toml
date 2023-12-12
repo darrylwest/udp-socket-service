@@ -3,3 +3,4 @@ version = "0.3.0"
 host = "0.0.0.0"
 port = 22200
 logging_config = "config/console.yaml"
+data_file = "data/users.kv"
