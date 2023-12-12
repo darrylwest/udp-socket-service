@@ -3,7 +3,7 @@
 //
 use anyhow::Result;
 use clap::Parser;
-use log::info;
+use log::{error, info};
 use std::env;
 use tiny_kv::db::DataStore;
 use udp_socket_service::config::Config;
@@ -22,6 +22,10 @@ struct Cli {
     /// config filename to override default
     #[arg(short, long, default_value_t = String::from("./config/server-config.toml"))]
     config_file: String,
+
+    /// an optional data file to load on startup.  this overrides the file in config
+    #[arg(short, long)]
+    data_file: Option<String>,
 }
 
 fn create_handler(args: Vec<String>) -> Handler {
@@ -32,6 +36,18 @@ fn create_handler(args: Vec<String>) -> Handler {
     info!("cli: {:?}", cli);
 
     let db = DataStore::create();
+    if cli.data_file.is_some() {
+        let filename = cli.data_file.unwrap();
+        info!("load data from: {}", filename);
+        match db.loaddb(&filename) {
+            Ok(sz) => info!("data loaded, {} elements...", sz),
+            Err(e) => {
+                let msg = format!("error loading data from {}, {}", filename, e);
+                error!("{}", msg);
+            }
+        }
+    }
+
     Handler::new(db)
 }
 
