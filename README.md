@@ -29,6 +29,7 @@ The `udp-socket-server` supports a small number of commands that line up with th
 
 Tiny-kv uses `HashMap<String, String>` for backing.  The data format for this is a `.kv` file with a key, then space then any type of string data including more spaces, json, base64, etc.  Here is an example:
 
+
 ```bash
 100 my value as a string
 101 flarb
@@ -38,6 +39,9 @@ Tiny-kv uses `HashMap<String, String>` for backing.  The data format for this is
 ### Other REPL Commands include...
 
 * ping -> PONG ; just to ensure everything is working
+* now -> the unix timestamp in seconds
+* now_ns -> timestamp in nano seconds (works only on linux)
+* status -> start time, up-time, error count, etc
 
 ###### dpw | 2023.12.12
 
