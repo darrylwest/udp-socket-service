@@ -72,6 +72,7 @@ mod tests {
     fn test_create_handler() {
         let args: Vec<String> = vec!["udp-server".to_string()];
         let handler = create_handler(args);
-        assert_eq!(handler.db.dbsize(), 0);
+
+        assert!(handler.db.dbsize() > 10);
     }
 }

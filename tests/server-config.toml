@@ -1,6 +1,6 @@
-name = "test-app"
-version = "0.2.0"
+name = "test-upp"
+version = "0.3.0"
 host = "127.0.0.1"
 port = 28400
 logging_config = "config/console.yaml"
-data_folder = "tests/data"
+data_file = "data/users.kv"
