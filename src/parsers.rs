@@ -33,12 +33,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::split2;
+    use log::info;
 
     #[test]
     fn test_split2_kv() {
         let msg = "set key my wordy key";
         let (left, right) = split2(msg);
-        println!("{}: {}", left, right);
+        info!("{}: {}", left, right);
         assert_eq!(left, "set");
         assert_eq!(right, "key my wordy key");
     }
@@ -47,7 +48,7 @@ mod tests {
     fn test_split2_k() {
         let msg = "get key";
         let (left, right) = split2(msg);
-        println!("{}: {}", left, right);
+        info!("{}: {}", left, right);
         assert_eq!(left, "get");
         assert_eq!(right, "key");
     }

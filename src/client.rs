@@ -27,6 +27,7 @@ impl Client {
         socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
 
         let server_address = self.create_server_addr();
+        println!("listen on addr: {}", server_address);
         let mut ln = 0;
 
         println!("Enter 'quit' or ^c to exit...");
@@ -66,7 +67,7 @@ mod tests {
     #[test]
     fn new() {
         let client = Client::new(create_config());
-        print!("{:?}", client);
+        println!("{:?}", client);
 
         assert!(true);
     }

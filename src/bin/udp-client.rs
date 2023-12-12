@@ -3,7 +3,6 @@
 ///
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use log::info;
 use std::env;
 use udp_socket_service::client::Client;
 use udp_socket_service::config::Config;
@@ -18,16 +17,18 @@ use udp_socket_service::config::Config;
 )]
 struct Cli {
     /// config filename to override default
-    #[arg(short, long, default_value_t = String::from("./config/server-config.toml"))]
+    #[arg(short, long, default_value_t = String::from("./config/client-config.toml"))]
     config_file: String,
 }
 
 fn create_client(args: Vec<String>) -> Result<Client> {
     let cli = Cli::parse_from(args);
-    info!("{:?}", cli);
-    let filename = "./config/client-config.toml";
-    match Config::read_config(filename) {
-        Ok(config) => Ok(Client::new(config)),
+
+    match Config::read_config(&cli.config_file) {
+        Ok(config) => {
+            let _ = config.start_logger();
+            Ok(Client::new(config))
+        }
         Err(e) => Err(anyhow!("could not read config: {}", e)),
     }
 }
