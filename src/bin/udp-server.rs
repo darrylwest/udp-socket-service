@@ -35,9 +35,16 @@ fn create_handler(args: Vec<String>) -> Handler {
 
     info!("cli: {:?}", cli);
 
-    let db = DataStore::create();
+    let mut datafile: Option<String> = None;
     if cli.data_file.is_some() {
-        let filename = cli.data_file.unwrap();
+        datafile = cli.data_file;
+    } else if config.data_file.is_some() {
+        datafile = config.data_file;
+    }
+
+    let db = DataStore::create();
+    if datafile.is_some() {
+        let filename = datafile.unwrap();
         info!("load data from: {}", filename);
         match db.loaddb(&filename) {
             Ok(sz) => info!("data loaded, {} elements...", sz),
