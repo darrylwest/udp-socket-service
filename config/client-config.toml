@@ -1,4 +1,4 @@
-name = "udp-socket-service"
+name = "udp-socket-client"
 version = "0.3.0"
 host = "127.0.0.1"
 port = 22200

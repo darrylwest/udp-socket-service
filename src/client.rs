@@ -1,6 +1,5 @@
 use crate::config::Config;
 use anyhow::Result;
-use log::info;
 use std::io::{self, Write};
 use std::net::UdpSocket;
 
@@ -28,12 +27,13 @@ impl Client {
         socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
 
         let server_address = self.create_server_addr();
+        println!("listen on addr: {}", server_address);
         let mut ln = 0;
 
-        info!("Enter 'quit' or ^c to exit...");
+        println!("Enter 'quit' or ^c to exit...");
         loop {
             ln += 1;
-            info!("{} > ", ln);
+            print!("{} > ", ln);
             let _ = io::stdout().flush();
             let mut input = String::new();
 
@@ -49,7 +49,7 @@ impl Client {
 
             let mut buffer = [0; 1024];
             let (amt, _) = socket.recv_from(&mut buffer)?;
-            info!("{}", String::from_utf8_lossy(&buffer[..amt]));
+            println!("{}", String::from_utf8_lossy(&buffer[..amt]));
         }
 
         Ok(())
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn new() {
         let client = Client::new(create_config());
-        info!("{:?}", client);
+        println!("{:?}", client);
 
         assert!(true);
     }

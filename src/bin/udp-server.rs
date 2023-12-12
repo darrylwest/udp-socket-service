@@ -6,6 +6,7 @@ use clap::Parser;
 use log::info;
 use std::env;
 use tiny_kv::db::DataStore;
+use udp_socket_service::config::Config;
 use udp_socket_service::handler::Handler;
 use udp_socket_service::server::start;
 
@@ -24,9 +25,12 @@ struct Cli {
 }
 
 fn create_handler(args: Vec<String>) -> Handler {
-    // TODO : read the cli and config file...
     let cli = Cli::parse_from(args);
-    info!("{:?}", cli);
+    let config = Config::read_config(&cli.config_file).unwrap();
+    let _ = config.start_logger();
+
+    info!("cli: {:?}", cli);
+
     let db = DataStore::create();
     Handler::new(db)
 }
