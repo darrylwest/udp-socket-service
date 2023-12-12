@@ -102,13 +102,17 @@ impl Response {
 
 #[derive(Clone)]
 pub struct Handler {
-    pub db: DataStore,
+    db: DataStore,
+    start_time: u64,
 }
 
 impl Handler {
     /// create a new handler with the specified data store.
     pub fn new(db: DataStore) -> Handler {
-        Handler { db }
+        Handler {
+            db,
+            start_time: get_ts(),
+        }
     }
 
     /// returns a response to the request, including error responses
@@ -118,6 +122,7 @@ impl Handler {
             "ping" => Response::create_ok("PONG".to_string()),
             "now" => Response::create_ok(format!("{}", get_ts())),
             "now_ns" => Response::create_ok(format!("{}", get_ns())),
+            "status" => Response::create_ok(self.status()),
             "get" => {
                 info!("get {:?}", &request.params);
                 let key = request.params[0].as_str();
@@ -139,7 +144,7 @@ impl Handler {
                 self.del(key)
             }
             "dbsize" => {
-                let sz = self.db.dbsize();
+                let sz = self.dbsize();
                 Response::create_ok(sz.to_string())
             }
             "keys" => {
@@ -190,6 +195,16 @@ impl Handler {
         } else {
             Response::create_ok("ok".to_string())
         }
+    }
+
+    /// return the number of elements in the k/v map
+    pub fn dbsize(&self) -> usize {
+        self.db.dbsize()
+    }
+
+    /// return the current status
+    pub fn status(&self) -> String {
+        format!("start_time: {}", self.start_time)
     }
 }
 

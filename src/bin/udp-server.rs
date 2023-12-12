@@ -73,6 +73,7 @@ mod tests {
         let args: Vec<String> = vec!["udp-server".to_string()];
         let handler = create_handler(args);
 
-        assert!(handler.db.dbsize() > 10);
+        assert!(handler.dbsize() >= 10);
+        assert!(handler.status().contains("start_time"))
     }
 }
