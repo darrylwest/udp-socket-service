@@ -730,8 +730,8 @@ dependencies = [
 
 [[package]]
 name = "tiny-kv"
-version = "0.2.3"
-source = "git+https://github.com/darrylwest/tiny-kv.git#2e6cb134c8d476bedc525e2aeb4860d815bf4ea6"
+version = "0.3.1"
+source = "git+https://github.com/darrylwest/tiny-kv.git#6b796f021cd1be513723d1be89f5323622d0f01b"
 dependencies = [
  "anyhow",
  "ascii",
