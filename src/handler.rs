@@ -142,6 +142,22 @@ impl Handler {
                 let sz = self.db.dbsize();
                 Response::create_ok(sz.to_string())
             }
+            "loaddb" => {
+                let filename = request.params[0].as_str();
+                if let Ok(sz) = self.db.loaddb(filename) {
+                    Response::create_ok(sz.to_string())
+                } else {
+                    Response::create(Status::bad_request(), filename.to_string())
+                }
+            }
+            "savedb" => {
+                let filename = request.params[0].as_str();
+                if let Ok(sz) = self.db.savedb(filename) {
+                    Response::create_ok(sz.to_string())
+                } else {
+                    Response::create(Status::bad_request(), filename.to_string())
+                }
+            }
             _ => {
                 error!("bad request: {}", &request.cmd);
                 Response::create(Status::bad_request(), request.cmd.to_string())
