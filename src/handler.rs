@@ -119,12 +119,12 @@ impl Handler {
             "now" => Response::create_ok(format!("{}", get_ts())),
             "now_ns" => Response::create_ok(format!("{}", get_ns())),
             "get" => {
-                println!("get {:?}", &request.params);
+                info!("get {:?}", &request.params);
                 let key = request.params[0].as_str();
                 self.get(key)
             }
             "set" => {
-                println!("set {:?}", &request.params);
+                info!("set {:?}", &request.params);
                 if request.params.len() == 2 {
                     let key = request.params[0].as_str();
                     let value = request.params[1].as_str();
@@ -134,7 +134,7 @@ impl Handler {
                 }
             }
             "del" => {
-                println!("del {:?}", &request.params);
+                info!("del {:?}", &request.params);
                 let key = request.params[0].as_str();
                 self.del(key)
             }
@@ -221,16 +221,16 @@ mod tests {
         let msg = format!("set {} {}", key, value);
         let request = Request::from_message(msg.as_str()).unwrap();
         let response = handler.handle_request(request);
-        println!("{:?}", response);
+        info!("{:?}", response);
         assert_eq!(handler.db.dbsize(), 1);
 
         let msg = format!("get {}", key);
         let request = Request::from_message(msg.as_str()).unwrap();
         let response = handler.handle_request(request);
-        println!("{:?}", response);
+        info!("{:?}", response);
         let request = Request::from_message("dbsize").unwrap();
         let response = handler.handle_request(request);
-        println!("dbsize {:?}", response);
+        info!("dbsize {:?}", response);
         assert_eq!(handler.db.dbsize(), 1);
         assert_eq!(response.as_usize().unwrap(), 1);
     }
