@@ -142,6 +142,11 @@ impl Handler {
                 let sz = self.db.dbsize();
                 Response::create_ok(sz.to_string())
             }
+            "keys" => {
+                let keys = self.db.keys();
+                let body = format!("{:?}", keys);
+                Response::create_ok(body)
+            }
             "loaddb" => {
                 let filename = request.params[0].as_str();
                 if let Ok(sz) = self.db.loaddb(filename) {
