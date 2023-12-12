@@ -25,6 +25,16 @@ The `udp-socket-server` supports a small number of commands that line up with th
 * loaddb [filename] -> number of elements loaded
 * savedb [filename] -> number of elements saved
 
+### Tiny-KV Data Format
+
+Tiny-kv uses `HashMap<String, String>` for backing.  The data format for this is a `.kv` file with a key, then space then any type of string data including more spaces, json, base64, etc.  Here is an example:
+
+```bash
+100 my value as a string
+101 flarb
+102 first_name: john, last_name: smith, email: john.smith@gmail.com
+```
+
 ### Other REPL Commands include...
 
 * ping -> PONG ; just to ensure everything is working
