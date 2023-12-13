@@ -132,7 +132,7 @@ impl Handler {
                 info!("set {:?}", &request.params);
                 if request.params.len() == 2 {
                     let key = request.params[0].as_str();
-                    let value = request.params[1].as_str();
+                    let value = request.params[1].clone().into_bytes();
                     self.set(key, value)
                 } else {
                     Response::create(Status::bad_request(), request.cmd.to_string())
@@ -178,20 +178,28 @@ impl Handler {
     /// get the item from key
     fn get(&self, key: &str) -> Response {
         match self.db.get(key) {
-            Some(value) => Response::create_ok(value),
+            Some(value) => {
+                let body = String::from_utf8(value).unwrap();
+                Response::create_ok(body)
+            }
             _ => Response::create(Status::not_found(), key.to_string()),
         }
     }
 
     /// set the value from key
-    fn set(&mut self, key: &str, value: &str) -> Response {
-        let _ = self.db.set(key, value);
-        Response::create_ok(value.to_string())
+    fn set(&mut self, key: &str, value: Vec<u8>) -> Response {
+        if let Some(value) = self.db.set(key, value) {
+            let val = String::from_utf8(value).unwrap();
+            Response::create_ok(val)
+        } else {
+            Response::create_ok("ok".to_string())
+        }
     }
 
     fn del(&mut self, key: &str) -> Response {
-        if let Some(resp) = self.db.remove(key) {
-            Response::create_ok(resp)
+        if let Some(value) = self.db.remove(key) {
+            let val = String::from_utf8(value).unwrap();
+            Response::create_ok(val)
         } else {
             Response::create_ok("ok".to_string())
         }
