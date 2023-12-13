@@ -21,6 +21,7 @@ struct Cli {
     config_file: String,
 }
 
+/// create the repl client from args return the client or error
 fn create_client(args: Vec<String>) -> Result<Client> {
     let cli = Cli::parse_from(args);
 
