@@ -19,13 +19,18 @@ impl Client {
         format!("{}:{}", self.ctx.host, self.ctx.port)
     }
 
-    /// start the client repl
-    pub fn start(&self) -> Result<()> {
+    fn create_socket(&self) -> Result<UdpSocket> {
         // explain this...
         let socket = UdpSocket::bind("127.0.0.1:0")?;
         socket.set_write_timeout(Some(std::time::Duration::new(5, 0)))?;
         socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
 
+        Ok(socket)
+    }
+
+    /// start the client repl
+    pub fn start(&self) -> Result<()> {
+        let socket = self.create_socket()?;
         let server_address = self.create_server_addr();
         println!("listen on addr: {}", server_address);
         let mut ln = 0;
@@ -70,5 +75,20 @@ mod tests {
         println!("{:?}", client);
 
         assert!(true);
+    }
+
+    #[test]
+    fn create_addr() {
+        let client = Client::new(create_config());
+        let addr = client.create_server_addr();
+        println!("addr: {}", addr);
+        assert_eq!(addr, "127.0.0.1:28400");
+    }
+
+    #[test]
+    fn create_socket() {
+        let client = Client::new(create_config());
+        let socket = client.create_server_addr();
+        println!("{:?}", socket);
     }
 }
