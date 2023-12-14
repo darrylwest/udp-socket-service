@@ -673,6 +673,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "service_uptime"
+version = "0.5.5"
+source = "git+https://github.com/darrylwest/service-uptime.git#e66e93b578bbff502b6e169d85de2efd135bbb18"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -848,7 +856,7 @@ dependencies = [
 
 [[package]]
 name = "udp-socket-service"
-version = "0.4.7"
+version = "0.4.8"
 dependencies = [
  "anyhow",
  "chrono",
@@ -860,6 +868,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "serde_toml",
+ "service_uptime",
  "tiny-kv",
  "tokio",
  "toml",
