@@ -68,6 +68,12 @@ mod tests {
         DataStore::create()
     }
 
+    fn create_server() -> Server {
+        let config = create_config();
+        let handler = Handler::new(create_db());
+        Server::create(config, handler)
+    }
+
     #[test]
     fn test_create() {
         let config = create_config();
@@ -75,5 +81,12 @@ mod tests {
         let server = Server::create(config, handler);
 
         println!("{:?}", server);
+    }
+
+    #[test]
+    fn test_addr() {
+        let server = create_server();
+        let addr = server.create_addr();
+        assert_eq!(addr, "127.0.0.1:28400");
     }
 }
