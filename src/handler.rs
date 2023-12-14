@@ -100,7 +100,7 @@ impl Response {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Handler {
     db: DataStore,
     start_time: u64,

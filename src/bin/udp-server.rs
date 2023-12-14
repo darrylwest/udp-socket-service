@@ -8,7 +8,7 @@ use std::env;
 use tiny_kv::db::DataStore;
 use udp_socket_service::config::Config;
 use udp_socket_service::handler::Handler;
-use udp_socket_service::server::start;
+use udp_socket_service::server::Server;
 
 #[derive(Debug, Default, Parser)]
 #[command(
@@ -28,20 +28,8 @@ struct Cli {
     data_file: Option<String>,
 }
 
-fn create_handler(args: Vec<String>) -> Handler {
-    let cli = Cli::parse_from(args);
-    let config = Config::read_config(&cli.config_file).unwrap();
-    let _ = config.start_logger();
-
-    info!("cli: {:?}", cli);
-
-    let mut datafile: Option<String> = None;
-    if cli.data_file.is_some() {
-        datafile = cli.data_file;
-    } else if config.data_file.is_some() {
-        datafile = config.data_file;
-    }
-
+/// create the default handler
+fn create_handler(datafile: Option<String>) -> Handler {
     let db = DataStore::create();
     if datafile.is_some() {
         let filename = datafile.unwrap();
@@ -58,10 +46,31 @@ fn create_handler(args: Vec<String>) -> Handler {
     Handler::new(db)
 }
 
+/// create the udp server
+fn create_server(args: Vec<String>) -> Result<Server> {
+    let cli = Cli::parse_from(args);
+    let config = Config::read_config(&cli.config_file).unwrap();
+    let _ = config.start_logger();
+
+    info!("cli: {:?}", cli);
+
+    let mut datafile: Option<String> = None;
+    if cli.data_file.is_some() {
+        datafile = cli.data_file;
+    } else if config.data_file.is_some() {
+        datafile = config.data_file.clone();
+    }
+
+    let handler = create_handler(datafile);
+    let server = Server::create(config.clone(), handler);
+
+    Ok(server)
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    start(create_handler(args)).await
+    create_server(args)?.start().await
 }
 
 #[cfg(test)]
@@ -70,8 +79,9 @@ mod tests {
 
     #[test]
     fn test_create_handler() {
-        let args: Vec<String> = vec!["udp-server".to_string()];
-        let handler = create_handler(args);
+        // let args: Vec<String> = vec!["udp-server".to_string()];
+        let filename = "./tests/users-ref.kv".to_string();
+        let handler = create_handler(Some(filename));
 
         assert!(handler.dbsize() >= 10);
         assert!(handler.status().contains("start_time"))
