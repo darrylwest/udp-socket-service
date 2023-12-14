@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn create_socket() {
         let client = Client::new(create_config());
-        let socket = client.create_server_addr();
+        let socket = client.create_socket().unwrap();
         println!("{:?}", socket);
     }
 }
