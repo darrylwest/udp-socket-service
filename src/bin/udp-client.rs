@@ -50,4 +50,16 @@ mod tests {
         println!("{:?}", client);
         assert!(true);
     }
+
+    #[test]
+    fn create_client_bad() {
+        let args: Vec<String> = vec![
+            "udp-client".to_string(),
+            "--config-file".to_string(),
+            "/bad/file".to_string(),
+        ];
+        let client = create_client(args);
+        println!("{:?}", client);
+        assert!(true);
+    }
 }
