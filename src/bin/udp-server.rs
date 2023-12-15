@@ -102,4 +102,16 @@ mod tests {
         let server = create_server(args);
         println!("{:?}", server);
     }
+
+    #[test]
+    fn create_test_server2() {
+        // let handler = create_handler(None);
+        let args: Vec<String> = vec![
+            "runner".to_string(),
+            "--data-file".to_string(),
+            "/bad/file".to_string(),
+        ];
+        let server = create_server(args);
+        println!("{:?}", server);
+    }
 }
