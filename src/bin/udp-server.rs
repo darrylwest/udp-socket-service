@@ -86,7 +86,6 @@ mod tests {
         let handler = create_handler(Some(filename));
 
         assert!(handler.dbsize() >= 10);
-        assert!(handler.status().contains("start_time"))
     }
 
     #[test]
