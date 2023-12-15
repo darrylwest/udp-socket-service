@@ -2,6 +2,7 @@
 use crate::parsers;
 use anyhow::{anyhow, Result};
 use log::{error, info};
+use service_uptime::status::ServiceStatus;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tiny_kv::db::DataStore;
 
@@ -100,10 +101,10 @@ impl Response {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Handler {
     db: DataStore,
-    start_time: u64,
+    status: ServiceStatus,
 }
 
 impl Handler {
@@ -111,18 +112,20 @@ impl Handler {
     pub fn new(db: DataStore) -> Handler {
         Handler {
             db,
-            start_time: get_ts(),
+            status: ServiceStatus::create(),
         }
     }
 
     /// returns a response to the request, including error responses
     pub fn handle_request(&mut self, request: Request) -> Response {
+        self.status.access.incr();
         info!("handle request: {}", &request.cmd);
+
         match request.cmd.as_str() {
             "ping" => Response::create_ok("PONG".to_string()),
             "now" => Response::create_ok(format!("{}", get_ts())),
             "now_ns" => Response::create_ok(format!("{}", get_ns())),
-            "status" => Response::create_ok(self.status()),
+            "status" => Response::create_ok(format!("{}", self.status)),
             "get" => {
                 info!("get {:?}", &request.params);
                 let key = request.params[0].as_str();
@@ -169,6 +172,7 @@ impl Handler {
                 }
             }
             _ => {
+                self.status.errors.incr();
                 error!("bad request: {}", &request.cmd);
                 Response::create(Status::bad_request(), request.cmd.to_string())
             }
@@ -208,11 +212,6 @@ impl Handler {
     /// return the number of elements in the k/v map
     pub fn dbsize(&self) -> usize {
         self.db.dbsize()
-    }
-
-    /// return the current status
-    pub fn status(&self) -> String {
-        format!("start_time: {}", self.start_time)
     }
 }
 

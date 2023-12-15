@@ -674,8 +674,8 @@ dependencies = [
 
 [[package]]
 name = "service_uptime"
-version = "0.5.5"
-source = "git+https://github.com/darrylwest/service-uptime.git#e66e93b578bbff502b6e169d85de2efd135bbb18"
+version = "0.6.1"
+source = "git+https://github.com/darrylwest/service-uptime.git#3f2f6dec1ddc1051b6fdec4efefdd27fa87f8b80"
 dependencies = [
  "serde",
 ]
@@ -765,8 +765,8 @@ dependencies = [
 
 [[package]]
 name = "tiny-kv"
-version = "0.3.2"
-source = "git+https://github.com/darrylwest/tiny-kv.git#0c2f09f6ecd7529afe20fce7b3921b4c219c103d"
+version = "0.3.3"
+source = "git+https://github.com/darrylwest/tiny-kv.git#ee355804641104ef711faf9347e64cc62fe3d10e"
 dependencies = [
  "anyhow",
  "ascii",
@@ -1144,18 +1144,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.7.30"
+version = "0.7.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "306dca4455518f1f31635ec308b6b3e4eb1b11758cefafc782827d0aa7acb5c7"
+checksum = "1c4061bedbb353041c12f413700357bec76df2c7e2ca8e4df8bac24c6bf68e3d"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.30"
+version = "0.7.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be912bf68235a88fbefd1b73415cb218405958d1655b2ece9035a19920bdf6ba"
+checksum = "b3c129550b3e6de3fd0ba67ba5c81818f9805e58b8d7fee80a3a59d2c9fc601a"
 dependencies = [
  "proc-macro2",
  "quote",

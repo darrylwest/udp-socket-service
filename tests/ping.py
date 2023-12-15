@@ -9,7 +9,7 @@ UDP_PORT = 22200
 MESSAGE = b"ping"
 
 count = 0
-while count < 3_000:
+while count < 1_000:
     count = count + 1
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

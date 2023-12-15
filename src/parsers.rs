@@ -32,7 +32,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::split2;
+    use super::{as_number, split2};
     use log::info;
 
     #[test]
@@ -51,5 +51,13 @@ mod tests {
         info!("{}: {}", left, right);
         assert_eq!(left, "get");
         assert_eq!(right, "key");
+    }
+
+    #[test]
+    fn bad_as_number() {
+        let value = "123LL";
+        let result = as_number::<u64>(value);
+        println!("{:?}", result);
+        assert!(result.is_err());
     }
 }
