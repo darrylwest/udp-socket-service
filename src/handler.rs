@@ -118,7 +118,9 @@ impl Handler {
 
     /// returns a response to the request, including error responses
     pub fn handle_request(&mut self, request: Request) -> Response {
+        self.status.access.incr();
         info!("handle request: {}", &request.cmd);
+
         match request.cmd.as_str() {
             "ping" => Response::create_ok("PONG".to_string()),
             "now" => Response::create_ok(format!("{}", get_ts())),
@@ -170,6 +172,7 @@ impl Handler {
                 }
             }
             _ => {
+                self.status.errors.incr();
                 error!("bad request: {}", &request.cmd);
                 Response::create(Status::bad_request(), request.cmd.to_string())
             }
