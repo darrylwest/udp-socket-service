@@ -51,7 +51,7 @@ fn create_server(args: Vec<String>) -> Result<Server> {
     let cli = Cli::parse_from(args);
     let config = Config::read_config(&cli.config_file).unwrap();
     Config::write_pid_file();
-    
+
     let _ = config.start_logger();
 
     info!("cli: {:?}", cli);
