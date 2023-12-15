@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use crate::create_handler;
+    use super::*;
 
     #[test]
     fn test_create_handler() {
@@ -87,5 +87,19 @@ mod tests {
 
         assert!(handler.dbsize() >= 10);
         assert!(handler.status().contains("start_time"))
+    }
+
+    #[test]
+    fn create_bad_handler() {
+        let handler = create_handler(Some("/not/a/real/file".to_string()));
+        println!("{:?}", handler);
+    }
+
+    #[test]
+    fn create_test_server() {
+        // let handler = create_handler(None);
+        let args: Vec<String> = vec![];
+        let server = create_server(args);
+        println!("{:?}", server);
     }
 }
