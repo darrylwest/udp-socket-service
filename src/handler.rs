@@ -6,7 +6,7 @@ use service_uptime::status::ServiceStatus;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tiny_kv::db::DataStore;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Request {
     pub cmd: String,
     pub params: Vec<String>,
@@ -32,7 +32,7 @@ impl Request {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Status {
     pub code: u16,
     pub description: String,
@@ -64,7 +64,7 @@ impl Status {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Response {
     pub status: Status,
     pub body: String,
@@ -268,5 +268,39 @@ mod tests {
         let handler = Handler::new(db);
 
         assert_eq!(handler.db.dbsize(), 0);
+    }
+
+    #[test]
+    fn status_bad_request() {
+        let status = Status::bad_request();
+        assert_eq!(status.code, 400);
+    }
+
+    #[test]
+    fn status_not_found() {
+        let status = Status::not_found();
+        assert_eq!(status.code, 404);
+    }
+
+    #[test]
+    fn create_response() {
+        let status = Status::not_found();
+        let response = Response::create(status, "this is a test".to_string());
+        assert_eq!(response.status.code, 404);
+    }
+
+    #[test]
+    fn response_as_u64() {
+        let response = Response::create_ok("42".to_string());
+        let n = response.as_u64();
+        assert!(n.is_ok());
+        assert_eq!(n.unwrap(), 42);
+    }
+
+    #[test]
+    fn response_as_string() {
+        let response = Response::create_ok("this is the body part".to_string());
+        let ss = response.as_string();
+        assert_eq!(ss, "200:ok:this is the body part");
     }
 }
