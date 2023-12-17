@@ -111,6 +111,12 @@ mod tests {
     }
 
     #[test]
+    fn test_show_prompt() {
+        show_prompt(1, "hello");
+        assert!(true);
+    }
+
+    #[test]
     fn create_addr() {
         let client = Client::new(create_config());
         let addr = client.create_server_addr();
