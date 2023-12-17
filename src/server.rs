@@ -4,8 +4,8 @@
 
 use crate::config::Config;
 use crate::handler::{Handler, Request, Response, Status};
-use anyhow::Result;
-use log::info;
+use anyhow::{anyhow, Result};
+use log::{error, info};
 use tokio::net::UdpSocket;
 
 #[derive(Debug, Default, Clone)]
@@ -24,17 +24,28 @@ impl Server {
         format!("{}:{}", self.config.host, self.config.port)
     }
 
-    /// pull out the handler
-    pub async fn start(&mut self) -> Result<()> {
+    async fn bind_socket(&self) -> Result<UdpSocket> {
         let addr = self.create_addr();
         info!("listening on: {}", addr);
-
         let sock = UdpSocket::bind(addr).await?;
+
+        Ok(sock)
+    }
+
+    /// pull out the handler
+    pub async fn start(&mut self) -> Result<()> {
+        let sock = match self.bind_socket().await {
+            Ok(sock) => sock,
+            Err(e) => {
+                let msg = format!("error binding socket: {}", e);
+                error!("{}", msg);
+                return Err(anyhow!("{}", msg));
+            }
+        };
 
         loop {
             // listen for a message
             let mut buf = [0; 128];
-            info!("wait for a connection...");
 
             let (len, addr) = sock.recv_from(&mut buf).await?;
             let msg = String::from_utf8_lossy(&buf[..len]);
