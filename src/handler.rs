@@ -215,18 +215,20 @@ impl Handler {
     }
 }
 
+/// return the unix timestamp
 fn get_ts() -> u64 {
-    match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        _ => 0_u64,
-    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("seconds")
+        .as_secs()
 }
 
+/// return the current time in nanoseconds
 fn get_ns() -> u128 {
-    match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_nanos(),
-        _ => 0_u128,
-    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("nanos")
+        .as_nanos()
 }
 
 #[cfg(test)]
@@ -247,7 +249,11 @@ mod tests {
         let value = "This is a test value";
         let msg = format!("set {} {}", key, value);
         let request = Request::from_message(msg.as_str()).unwrap();
-        let response = handler.handle_request(request);
+        let response = handler.handle_request(request.clone());
+        info!("{:?}", response);
+        assert_eq!(handler.db.dbsize(), 1);
+
+        let response = handler.handle_request(request.clone());
         info!("{:?}", response);
         assert_eq!(handler.db.dbsize(), 1);
 
@@ -333,6 +339,28 @@ mod tests {
         let request = Request {
             cmd: "loaddb".to_string(),
             params: vec!["badfil/users-ref.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn savedb() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "savedb".to_string(),
+            params: vec!["tests/test-out.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn savedb_bad() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "savedb".to_string(),
+            params: vec!["not-a-good-file/test-out.kv".to_string()],
         };
         let response = handler.handle_request(request);
         assert_eq!(response.status.code, 400);
