@@ -263,6 +263,49 @@ mod tests {
     }
 
     #[test]
+    fn bad_set() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "set".to_string(),
+            params: vec!["mykey".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn bad_get() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "get".to_string(),
+            params: vec!["my-bad-key".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 404);
+    }
+
+    #[test]
+    fn del() {
+        let mut handler = create_handler();
+        let rq = Request {
+            cmd: "set".to_string(),
+            params: vec!["mykey".to_string(), "my value".to_string()],
+        };
+        let _ = handler.handle_request(rq);
+
+        assert_eq!(handler.db.dbsize(), 1);
+
+        let request = Request {
+            cmd: "del".to_string(),
+            params: vec!["mykey".to_string()],
+        };
+        let response = handler.handle_request(request.clone());
+        assert_eq!(response.status.code, 200);
+        let response = handler.handle_request(request.clone());
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
     fn new() {
         let db = DataStore::create();
         let handler = Handler::new(db);
