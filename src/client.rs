@@ -6,11 +6,18 @@ use std::net::UdpSocket;
 #[derive(Debug, Clone)]
 pub struct Client {
     ctx: Config,
-    prompter: fn() -> String,
+    prompter: fn(line_num: usize, prompt: &str) -> String,
+}
+
+/// show the repl prompt, line number and >
+fn show_prompt(ln: usize, prompt: &str) {
+    print!("{}{} ", ln, prompt);
+    let _ = io::stdout().flush();
 }
 
 /// read the next repl command from stdin
-fn read_input() -> String {
+fn read_input(ln: usize, prompt: &str) -> String {
+    show_prompt(ln, prompt);
     let mut input = String::new();
 
     io::stdin()
@@ -52,15 +59,13 @@ impl Client {
         loop {
             ln += 1;
 
-            print!("{} > ", ln);
-            let _ = io::stdout().flush();
+            let input = (self.prompter)(ln, " >");
+            let message = input.as_bytes();
 
-            let input = (self.prompter)();
             if input.starts_with("quit") {
                 break;
             }
 
-            let message = input.as_bytes();
             socket.send_to(message, server_address)?;
 
             let mut buffer = [0; 1024];
@@ -84,8 +89,13 @@ impl Client {
 mod tests {
     use super::*;
 
-    fn mock_reader() -> String {
-        "quit".to_string()
+    fn mock_reader(ln: usize, prompt: &str) -> String {
+        println!("{}", prompt);
+
+        match ln {
+            1 => "quit".to_string(),
+            _ => "quit".to_string(),
+        }
     }
 
     fn create_config() -> Config {
@@ -117,8 +127,10 @@ mod tests {
 
     #[test]
     fn start_repl() {
+        // the server needs to be up for this to work...
         let reader = mock_reader;
-        assert_eq!(reader(), "quit");
+        assert_eq!(reader(1, "anything"), "quit");
+        assert_eq!(reader(9, "> "), "quit");
 
         let client = Client {
             ctx: create_config(),

@@ -41,6 +41,13 @@ impl Server {
             let msg = msg.trim();
 
             info!("recv: {} bytes from {:?}, msg: {}", len, addr, msg);
+
+            if msg == "shutdown" {
+                info!("{}", "received shutdown command");
+                Config::remove_pid_file();
+                break;
+            }
+
             // split this into [cmd, param, param]
             let response = match Request::from_message(msg) {
                 Ok(request) => self.handler.handle_request(request),
@@ -52,6 +59,8 @@ impl Server {
             let len = sock.send_to(resp.as_bytes(), addr).await?;
             info!("returned: {:?}, size {}.", response, len);
         }
+
+        Ok(())
     }
 }
 
@@ -74,6 +83,14 @@ mod tests {
         let handler = Handler::new(create_db());
         Server::create(config, handler)
     }
+
+    /*
+    #[tokio::test]
+    async start() {
+        let server = create_server();
+
+    }
+    */
 
     #[tokio::test]
     async fn bind_socket() {
