@@ -84,13 +84,17 @@ mod tests {
         Server::create(config, handler)
     }
 
-    /*
     #[tokio::test]
-    async start() {
-        let server = create_server();
+    async fn start() {
+        let mut config = create_config();
+        config.port = 9898;
+        let handler = Handler::new(create_db());
+        let mut server = Server::create(config, handler);
+        let _fut = server.start();
 
+        // let result = fut.await;
+        // assert!(result.is_ok());
     }
-    */
 
     #[tokio::test]
     async fn bind_socket() {
