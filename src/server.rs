@@ -4,8 +4,8 @@
 
 use crate::config::Config;
 use crate::handler::{Handler, Request, Response, Status};
-use anyhow::{anyhow, Result};
-use log::{error, info};
+use anyhow::Result;
+use log::info;
 use tokio::net::UdpSocket;
 
 #[derive(Debug, Default, Clone)]
@@ -30,14 +30,7 @@ impl Server {
 
     /// pull out the handler
     pub async fn start(&mut self) -> Result<()> {
-        let sock = match self.bind_socket().await {
-            Ok(sock) => sock,
-            Err(e) => {
-                let msg = format!("error binding socket: {}", e);
-                error!("{}", msg);
-                return Err(anyhow!("{}", msg));
-            }
-        };
+        let sock = self.bind_socket().await.expect("open socket error");
 
         loop {
             // listen for a message
