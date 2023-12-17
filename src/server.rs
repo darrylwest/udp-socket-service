@@ -20,12 +20,8 @@ impl Server {
         Server { config, handler }
     }
 
-    fn create_addr(&self) -> String {
-        format!("{}:{}", self.config.host, self.config.port)
-    }
-
     async fn bind_socket(&self) -> Result<UdpSocket> {
-        let addr = self.create_addr();
+        let addr = format!("{}:{}", self.config.host, self.config.port);
         info!("listening on: {}", addr);
         let sock = UdpSocket::bind(addr).await?;
 
@@ -70,6 +66,7 @@ impl Server {
 mod tests {
     use super::*;
     use tiny_kv::db::DataStore;
+    // use tokio_test::*;
 
     fn create_config() -> Config {
         Config::read_config("./tests/server-config.toml").unwrap()
@@ -85,6 +82,13 @@ mod tests {
         Server::create(config, handler)
     }
 
+    #[tokio::test]
+    async fn bind_socket() {
+        let server = create_server();
+        let sock = server.bind_socket().await;
+        println!("{:?}", sock);
+    }
+
     #[test]
     fn test_create() {
         let config = create_config();
@@ -92,12 +96,5 @@ mod tests {
         let server = Server::create(config, handler);
 
         println!("{:?}", server);
-    }
-
-    #[test]
-    fn test_addr() {
-        let server = create_server();
-        let addr = server.create_addr();
-        assert_eq!(addr, "127.0.0.1:28400");
     }
 }
