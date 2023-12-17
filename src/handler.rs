@@ -306,6 +306,50 @@ mod tests {
     }
 
     #[test]
+    fn keys() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "keys".to_string(),
+            params: vec![],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn loaddb() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "loaddb".to_string(),
+            params: vec!["tests/users-ref.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn loaddb_bad() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "loaddb".to_string(),
+            params: vec!["badfil/users-ref.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn unknown_command() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "flarberr".to_string(),
+            params: vec![],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
     fn new() {
         let db = DataStore::create();
         let handler = Handler::new(db);
@@ -345,5 +389,13 @@ mod tests {
         let response = Response::create_ok("this is the body part".to_string());
         let ss = response.as_string();
         assert_eq!(ss, "200:ok:this is the body part");
+    }
+
+    #[test]
+    fn get_now_ts() {
+        let ts = get_ts();
+        assert!(ts > 1000);
+        let ns = get_ns();
+        assert!(ns > 1000);
     }
 }
