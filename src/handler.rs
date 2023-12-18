@@ -6,7 +6,7 @@ use service_uptime::status::ServiceStatus;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tiny_kv::db::DataStore;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Request {
     pub cmd: String,
     pub params: Vec<String>,
@@ -32,7 +32,7 @@ impl Request {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Status {
     pub code: u16,
     pub description: String,
@@ -64,7 +64,7 @@ impl Status {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
 pub struct Response {
     pub status: Status,
     pub body: String,
@@ -215,18 +215,20 @@ impl Handler {
     }
 }
 
+/// return the unix timestamp
 fn get_ts() -> u64 {
-    match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        _ => 0_u64,
-    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("seconds")
+        .as_secs()
 }
 
+/// return the current time in nanoseconds
 fn get_ns() -> u128 {
-    match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Ok(n) => n.as_nanos(),
-        _ => 0_u128,
-    }
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("nanos")
+        .as_nanos()
 }
 
 #[cfg(test)]
@@ -247,7 +249,11 @@ mod tests {
         let value = "This is a test value";
         let msg = format!("set {} {}", key, value);
         let request = Request::from_message(msg.as_str()).unwrap();
-        let response = handler.handle_request(request);
+        let response = handler.handle_request(request.clone());
+        info!("{:?}", response);
+        assert_eq!(handler.db.dbsize(), 1);
+
+        let response = handler.handle_request(request.clone());
         info!("{:?}", response);
         assert_eq!(handler.db.dbsize(), 1);
 
@@ -263,10 +269,161 @@ mod tests {
     }
 
     #[test]
+    fn bad_set() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "set".to_string(),
+            params: vec!["mykey".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn bad_get() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "get".to_string(),
+            params: vec!["my-bad-key".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 404);
+    }
+
+    #[test]
+    fn del() {
+        let mut handler = create_handler();
+        let rq = Request {
+            cmd: "set".to_string(),
+            params: vec!["mykey".to_string(), "my value".to_string()],
+        };
+        let _ = handler.handle_request(rq);
+
+        assert_eq!(handler.db.dbsize(), 1);
+
+        let request = Request {
+            cmd: "del".to_string(),
+            params: vec!["mykey".to_string()],
+        };
+        let response = handler.handle_request(request.clone());
+        assert_eq!(response.status.code, 200);
+        let response = handler.handle_request(request.clone());
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn keys() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "keys".to_string(),
+            params: vec![],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn loaddb() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "loaddb".to_string(),
+            params: vec!["tests/users-ref.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn loaddb_bad() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "loaddb".to_string(),
+            params: vec!["badfil/users-ref.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn savedb() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "savedb".to_string(),
+            params: vec!["tests/test-out.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 200);
+    }
+
+    #[test]
+    fn savedb_bad() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "savedb".to_string(),
+            params: vec!["not-a-good-file/test-out.kv".to_string()],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
+    fn unknown_command() {
+        let mut handler = create_handler();
+        let request = Request {
+            cmd: "flarberr".to_string(),
+            params: vec![],
+        };
+        let response = handler.handle_request(request);
+        assert_eq!(response.status.code, 400);
+    }
+
+    #[test]
     fn new() {
         let db = DataStore::create();
         let handler = Handler::new(db);
 
         assert_eq!(handler.db.dbsize(), 0);
+    }
+
+    #[test]
+    fn status_bad_request() {
+        let status = Status::bad_request();
+        assert_eq!(status.code, 400);
+    }
+
+    #[test]
+    fn status_not_found() {
+        let status = Status::not_found();
+        assert_eq!(status.code, 404);
+    }
+
+    #[test]
+    fn create_response() {
+        let status = Status::not_found();
+        let response = Response::create(status, "this is a test".to_string());
+        assert_eq!(response.status.code, 404);
+    }
+
+    #[test]
+    fn response_as_u64() {
+        let response = Response::create_ok("42".to_string());
+        let n = response.as_u64();
+        assert!(n.is_ok());
+        assert_eq!(n.unwrap(), 42);
+    }
+
+    #[test]
+    fn response_as_string() {
+        let response = Response::create_ok("this is the body part".to_string());
+        let ss = response.as_string();
+        assert_eq!(ss, "200:ok:this is the body part");
+    }
+
+    #[test]
+    fn get_now_ts() {
+        let ts = get_ts();
+        assert!(ts > 1000);
+        let ns = get_ns();
+        assert!(ns > 1000);
     }
 }

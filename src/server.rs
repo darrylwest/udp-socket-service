@@ -20,27 +20,34 @@ impl Server {
         Server { config, handler }
     }
 
-    fn create_addr(&self) -> String {
-        format!("{}:{}", self.config.host, self.config.port)
+    async fn bind_socket(&self) -> Result<UdpSocket> {
+        let addr = format!("{}:{}", self.config.host, self.config.port);
+        info!("listening on: {}", addr);
+        let sock = UdpSocket::bind(addr).await?;
+
+        Ok(sock)
     }
 
     /// pull out the handler
     pub async fn start(&mut self) -> Result<()> {
-        let addr = self.create_addr();
-        info!("listening on: {}", addr);
-
-        let sock = UdpSocket::bind(addr).await?;
+        let sock = self.bind_socket().await.expect("open socket error");
 
         loop {
             // listen for a message
             let mut buf = [0; 128];
-            info!("wait for a connection...");
 
             let (len, addr) = sock.recv_from(&mut buf).await?;
             let msg = String::from_utf8_lossy(&buf[..len]);
             let msg = msg.trim();
 
             info!("recv: {} bytes from {:?}, msg: {}", len, addr, msg);
+
+            if msg == "shutdown" {
+                info!("{}", "received shutdown command");
+                Config::remove_pid_file();
+                break;
+            }
+
             // split this into [cmd, param, param]
             let response = match Request::from_message(msg) {
                 Ok(request) => self.handler.handle_request(request),
@@ -52,6 +59,8 @@ impl Server {
             let len = sock.send_to(resp.as_bytes(), addr).await?;
             info!("returned: {:?}, size {}.", response, len);
         }
+
+        Ok(())
     }
 }
 
@@ -59,6 +68,7 @@ impl Server {
 mod tests {
     use super::*;
     use tiny_kv::db::DataStore;
+    // use tokio_test::*;
 
     fn create_config() -> Config {
         Config::read_config("./tests/server-config.toml").unwrap()
@@ -74,6 +84,62 @@ mod tests {
         Server::create(config, handler)
     }
 
+    #[tokio::test]
+    async fn start() {
+        let ctx = create_config();
+        let config = Config {
+            name: ctx.name.to_string(),
+            version: ctx.version.to_string(),
+            host: ctx.host.to_string(),
+            port: 9898,
+            logging_config: ctx.logging_config.to_string(),
+            data_file: ctx.data_file.clone(),
+        };
+
+        let handler = Handler::new(create_db());
+        let mut server = Server::create(config.clone(), handler);
+
+        let addr = format!("{}:{}", config.clone().host, config.clone().port);
+        let client = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+
+        let server_task = tokio::spawn(async move {
+            let result = server.start().await;
+            println!("{:?}", result);
+        });
+
+        let client_task = tokio::spawn(async move {
+            // first send an easy command
+            let result = client.send_to(b"ping", addr.clone()).await;
+            println!("{:?}", result);
+
+            let mut buf = [0; 128];
+            let result = client.recv_from(&mut buf).await;
+            println!("{:?}", result);
+
+            // now send an error
+            let result = client.send_to(b"set flarb", addr.clone()).await;
+            println!("{:?}", result);
+
+            let mut buf = [0; 128];
+            let result = client.recv_from(&mut buf).await;
+            println!("{:?}", result);
+
+            // now send the shutdown
+            let result = client.send_to(b"shutdown", addr.clone()).await;
+            println!("{:?}", result);
+        });
+
+        client_task.await.unwrap();
+        server_task.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn bind_socket() {
+        let server = create_server();
+        let sock = server.bind_socket().await;
+        println!("{:?}", sock);
+    }
+
     #[test]
     fn test_create() {
         let config = create_config();
@@ -81,12 +147,5 @@ mod tests {
         let server = Server::create(config, handler);
 
         println!("{:?}", server);
-    }
-
-    #[test]
-    fn test_addr() {
-        let server = create_server();
-        let addr = server.create_addr();
-        assert_eq!(addr, "127.0.0.1:28400");
     }
 }
