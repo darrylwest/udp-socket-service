@@ -108,7 +108,14 @@ mod tests {
         });
 
         let client_task = tokio::spawn(async move {
-            let result = client.send_to(b"shutdown", addr).await;
+            let result = client.send_to(b"ping", addr.clone()).await;
+            println!("{:?}", result);
+
+            let mut buf = [0; 128];
+            let result = client.recv_from(&mut buf).await;
+            println!("{:?}", result);
+
+            let result = client.send_to(b"shutdown", addr.clone()).await;
             println!("{:?}", result);
         });
 
