@@ -86,14 +86,34 @@ mod tests {
 
     #[tokio::test]
     async fn start() {
-        let mut config = create_config();
-        config.port = 9898;
-        let handler = Handler::new(create_db());
-        let mut server = Server::create(config, handler);
-        let _fut = server.start();
+        let ctx = create_config();
+        let config = Config {
+            name: ctx.name.to_string(),
+            version: ctx.version.to_string(),
+            host: ctx.host.to_string(),
+            port: 9898,
+            logging_config: ctx.logging_config.to_string(),
+            data_file: ctx.data_file.clone(),
+        };
 
-        // let result = fut.await;
-        // assert!(result.is_ok());
+        let handler = Handler::new(create_db());
+        let mut server = Server::create(config.clone(), handler);
+
+        let addr = format!("{}:{}", config.clone().host, config.clone().port);
+        let client = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+
+        let server_task = tokio::spawn(async move {
+            let result = server.start().await;
+            println!("{:?}", result);
+        });
+
+        let client_task = tokio::spawn(async move {
+            let result = client.send_to(b"shutdown", addr).await;
+            println!("{:?}", result);
+        });
+
+        client_task.await.unwrap();
+        server_task.await.unwrap();
     }
 
     #[tokio::test]
