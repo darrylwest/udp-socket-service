@@ -117,7 +117,7 @@ mod tests {
             println!("{:?}", result);
 
             // now send an error
-            let result = client.send_to(b"badrequest", addr.clone()).await;
+            let result = client.send_to(b"set flarb", addr.clone()).await;
             println!("{:?}", result);
 
             let mut buf = [0; 128];
