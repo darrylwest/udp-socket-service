@@ -78,10 +78,7 @@ impl Client {
 
     /// start the client repl
     pub fn start(&self) -> Result<()> {
-        let socket = self.create_socket()?;
-        let server_address = self.create_server_addr();
-
-        self.start_repl(socket, server_address.as_str())
+        self.start_repl(self.create_socket()?, self.create_server_addr().as_str())
     }
 }
 
