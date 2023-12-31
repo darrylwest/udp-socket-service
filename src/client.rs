@@ -9,6 +9,25 @@ pub struct Client {
     prompter: fn(line_num: usize, prompt: &str) -> String,
 }
 
+/// show help for the client repl
+fn help(startup: bool) -> String {
+    let mut buf = format!("{} Version: {}.\n\n", "UDP Client REPL", crate::VERSION);
+    if startup {
+        buf.push_str("Enter 'quit' to exit, 'help' for a list of commands.");
+    } else {
+        buf.push_str("Commands\n");
+        buf.push_str(" get key -> value\n");
+        buf.push_str(" set key value -> ok\n");
+        buf.push_str(" del key -> ok\n");
+        buf.push_str(" keys -> [list]\n");
+        buf.push_str(" dbsize -> [list]\n");
+        buf.push_str(" loaddb [filename] -> size\n");
+        buf.push_str(" savedb [filename] -> size\n");
+    }
+
+    buf
+}
+
 /// show the repl prompt, line number and >
 fn show_prompt(ln: usize, prompt: &str) {
     print!("{}{} ", ln, prompt);
@@ -54,7 +73,7 @@ impl Client {
 
     /// start the repl loop
     fn start_repl(&self, socket: UdpSocket, server_address: &str) -> Result<()> {
-        println!("Enter 'quit' or ^c to exit...");
+        println!("{}", help(true));
         let mut ln = 0;
         loop {
             ln += 1;
@@ -66,11 +85,15 @@ impl Client {
                 break;
             }
 
-            socket.send_to(message, server_address)?;
+            if input.starts_with("help") {
+                println!("{}", help(false));
+            } else {
+                socket.send_to(message, server_address)?;
 
-            let mut buffer = [0; 1024];
-            let (amt, _) = socket.recv_from(&mut buffer)?;
-            println!("{}", String::from_utf8_lossy(&buffer[..amt]));
+                let mut buffer = [0; 1024];
+                let (amt, _) = socket.recv_from(&mut buffer)?;
+                println!("{}", String::from_utf8_lossy(&buffer[..amt]));
+            }
         }
 
         Ok(())
@@ -145,5 +168,13 @@ mod tests {
 
         let resp = client.start_repl(socket, server_address.as_str());
         assert!(resp.is_ok());
+    }
+
+    #[test]
+    fn show_help() {
+        let text = help(true);
+        assert!(text.contains("Version"));
+        let text = help(false);
+        println!("{}", text);
     }
 }
