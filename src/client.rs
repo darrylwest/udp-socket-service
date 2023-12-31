@@ -23,6 +23,10 @@ fn help(startup: bool) -> String {
         buf.push_str(" dbsize -> [list]\n");
         buf.push_str(" loaddb [filename] -> size\n");
         buf.push_str(" savedb [filename] -> size\n");
+        buf.push_str(" ping -> PONG\n");
+        buf.push_str(" now -> unix ts\n");
+        buf.push_str(" now_ns -> nano-seconds\n");
+        buf.push_str(" status -> uptime\n");
     }
 
     buf
