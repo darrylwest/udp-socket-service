@@ -1,5 +1,6 @@
 # UDP Socket Service
 
+Current Version 0.5.2
 
 ```bash
  _______ _____  ______   _______              __           __   
