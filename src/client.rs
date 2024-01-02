@@ -68,9 +68,9 @@ impl Client {
 
     // create the socket and set the timeout values
     fn create_socket(&self) -> Result<UdpSocket> {
-        let socket = UdpSocket::bind("127.0.0.1:0")?;
-        socket.set_write_timeout(Some(std::time::Duration::new(5, 0)))?;
-        socket.set_read_timeout(Some(std::time::Duration::new(5, 0)))?;
+        let socket = UdpSocket::bind("0.0.0.0:0")?;
+        socket.set_write_timeout(Some(std::time::Duration::new(2, 0)))?;
+        socket.set_read_timeout(Some(std::time::Duration::new(2, 0)))?;
 
         Ok(socket)
     }
