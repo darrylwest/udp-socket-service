@@ -1,5 +1,5 @@
 name = "udp-socket-client"
 version = "0.3.0"
-host = "127.0.0.1"
+host = "10.0.1.237"
 port = 22200
 logging_config = "config/console.yaml"
