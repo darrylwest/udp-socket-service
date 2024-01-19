@@ -14,5 +14,5 @@ export NAME="config-service"
 
 # -v "$PWD":/home/dpw/
 
-docker run -it -d -u dpw --network=service-net --hostname=keys --name $NAME "darrylwest/$NAME:latest"
+docker run -it -d -u dpw --network=service-net --publish 22200:22200/udp --hostname=keys --name $NAME "darrylwest/$NAME:latest"
 
