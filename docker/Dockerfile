@@ -3,7 +3,7 @@
 #
 FROM debian:bookworm
 
-LABEL maintainer="darryl.west" version="2024.01.19"
+LABEL maintainer="darryl.west" version="2024.01.20"
 
 RUN apt-get update && apt-get install -y \
     make binutils autoconf automake autotools-dev libtool pkg-config cmake \
