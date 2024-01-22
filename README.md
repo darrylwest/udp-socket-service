@@ -61,5 +61,11 @@ Options:
 
 ```
 
-###### dpw | 2024.01.20
+## Config Service
+
+* runner name: config-request
+* default config: ~/.config/udp-config/client-config.toml
+* default logs: ~/.logs
+
+###### dpw | 2024.01.22
 
