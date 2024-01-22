@@ -49,7 +49,7 @@ impl RequestClient {
 
 #[derive(Debug, Default, Parser)]
 #[command(
-    name="udp-client",
+    name="udp-request",
     author,
     version,
     about="A UDP request client for udp-server & k/v store.",
@@ -57,7 +57,7 @@ impl RequestClient {
 )]
 struct Cli {
     /// config filename to override default
-    #[arg(short, long, default_value_t = String::from("./config/client-config.toml"))]
+    #[arg(short, long, default_value_t = String::from(".config/udp-config/client-config.toml"))]
     config_file: String,
 
     /// send a request message; default is status
@@ -82,10 +82,11 @@ fn send_request(args: Vec<String>) -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let _ = send_request(args);
+    let home = env::var_os("HOME").unwrap();
+    env::set_current_dir(home).unwrap();
 
-    Ok(())
+    let args: Vec<String> = env::args().collect();
+    send_request(args)
 }
 
 #[cfg(test)]
