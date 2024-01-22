@@ -72,6 +72,7 @@ merge:
 
 # install the app
 install:
-    just release
-    ./install.sh
+    cargo build --release --bins
+    mv -f ./target/release/udp-request ~/.local/bin/config-request
+    mv -f ./target/release/udp-client ~/.local/bin/udp-client
 
