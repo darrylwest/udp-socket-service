@@ -44,5 +44,28 @@ Tiny-kv uses `HashMap<String, String>` for backing.  The data format for this is
 * now_ns -> timestamp in nano seconds (works only on linux)
 * status -> start time, up-time, error count, etc
 
-###### dpw | 2023.12.12
+## UDP Request
+
+A single request script to access the UDP service.  Implemented in rust (as below) and in python.
+
+```
+A UDP request client for udp-server & k/v store.
+
+Usage: udp-request [OPTIONS]
+
+Options:
+  -c, --config-file <CONFIG_FILE>  config filename to override default [default: ./config/client-config.toml]
+  -m, --message <MESSAGE>          send a request message; default is status [default: status]
+  -h, --help                       Print help
+  -V, --version                    Print version
+
+```
+
+## Config Service
+
+* runner name: config-request
+* default config: ~/.config/udp-config/client-config.toml
+* default logs: ~/.logs
+
+###### dpw | 2024.01.22
 
