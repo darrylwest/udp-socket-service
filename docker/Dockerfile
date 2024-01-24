@@ -16,4 +16,4 @@ ADD install.tgz /
 
 WORKDIR /home/dpw
 
-CMD sleep infinity
+CMD [ "/home/dpw/.local/bin/udp-server" ]
