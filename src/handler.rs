@@ -194,6 +194,7 @@ impl Handler {
     fn set(&mut self, key: &str, value: Vec<u8>) -> Response {
         if let Some(value) = self.db.set(key, value) {
             let val = String::from_utf8(value).unwrap();
+            // queue change for replication/backup
             Response::create_ok(val)
         } else {
             Response::create_ok("ok".to_string())
@@ -203,6 +204,7 @@ impl Handler {
     fn del(&mut self, key: &str) -> Response {
         if let Some(value) = self.db.remove(key) {
             let val = String::from_utf8(value).unwrap();
+            // queue change for replication/backup
             Response::create_ok(val)
         } else {
             Response::create_ok("ok".to_string())
