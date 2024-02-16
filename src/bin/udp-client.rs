@@ -17,7 +17,7 @@ use udp_socket_service::config::Config;
 )]
 struct Cli {
     /// config filename to override default
-    #[arg(short, long, default_value_t = String::from("./config/client-config.toml"))]
+    #[arg(short, long, default_value_t = String::from("./config/udp-config/client-config.toml"))]
     config_file: String,
 }
 
