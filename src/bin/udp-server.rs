@@ -19,7 +19,7 @@ use udp_socket_service::server::Server;
     long_about=None,
 )]
 struct Cli {
-    /// config filename to override default
+    /// config filename to override default (runs in dedicated container)
     #[arg(short, long, default_value_t = String::from("./config/server-config.toml"))]
     config_file: String,
 
