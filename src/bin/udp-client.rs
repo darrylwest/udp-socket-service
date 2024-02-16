@@ -17,7 +17,7 @@ use udp_socket_service::config::Config;
 )]
 struct Cli {
     /// config filename to override default
-    #[arg(short, long, default_value_t = String::from("./config/udp-config/client-config.toml"))]
+    #[arg(short, long, default_value_t = String::from(".config/udp-config/client-config.toml"))]
     config_file: String,
 }
 
@@ -35,6 +35,9 @@ fn create_client(args: Vec<String>) -> Result<Client> {
 }
 
 fn main() -> Result<()> {
+    let home = env::var_os("HOME").unwrap();
+    env::set_current_dir(home).unwrap();
+
     let args: Vec<String> = env::args().collect();
     create_client(args)?.start()
 }
